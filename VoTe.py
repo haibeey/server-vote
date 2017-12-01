@@ -179,7 +179,7 @@ def create_poll():
             email=request.args.get("email")
             name=request.args.get("name")
             topic=request.args.get("topic")
-            imagename=request.args.get("image")
+            imagename=secure_filename(request.args.get("image"))
             cache.new_entry(email,name,topic,0,imagename)
             return jsonify(json_message("ok","new pending option added"))
         save=None
