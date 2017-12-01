@@ -42,7 +42,7 @@ class Ip(object):
         if title in Dict:
             Dict[title].append(address)
         else:
-            Dict[user]=[address]
+            Dict[title]=[address]
         with open("/home/haibeeyy/mysite/ip.json","w") as f:
             f.write(json.dumps(Dict))
 
