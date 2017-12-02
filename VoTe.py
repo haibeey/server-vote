@@ -236,9 +236,9 @@ def cast_vote():
             for choice_e in the_topic.choices:
                 if choice_e.name==c_hoice:
                     choice_e.count+=1
+                    the_topic.count+=1
                     db.session.commit()
                     ip.new_entry(t_opic,Id)
-                    the_topic.count+=1
                     return jsonify(json_message("ok","you just vote"))
         else:
             return jsonify(json_message("ok","you voted before"))
