@@ -14,7 +14,7 @@ Auth=auth()
 cache=Cache()
 ip=Ip()
 
-vote.config["SQLALCHEMY_DATABASE_URI"]='sqlite:///VOTE'
+vote.config["SQLALCHEMY_DATABASE_URI"]='sqlite:///VOOTE'
 #vote.config["SQLALCHEMY_TRACK_MODIFICATIONS"]=True
 vote.config["SECRET_KEY"]="6g73vut6svs766rdfd"
 vote.config['DATABASE']='myblog.db'
@@ -23,12 +23,10 @@ Allowed_extensions=set(["png","jpeg"])
 
 
 
-
-
 db.init_app(vote)
 db.create_all(app=vote)
 
-
+per_query=30
 def onError(error=None):
     "returns some json object with error"
     if error:
@@ -50,45 +48,41 @@ def json_message(response,message):
         }
 
 
-
 @vote.route("/",methods=["GET"])
 def home():
-    try:
-        result={} #would hold the result for all data that would be sent back to the client
-        arg=request.args.get("name")
-        if arg:
-            user_topic=User.query.filter_by(email=arg).first().topics
-            t_opics=[]
-            x=1
-            for t_ in user_topic:
-                arr=[t_.title,t_.count]
-                to_be_added={
-                    "topic":arr
-                }
-                t_opics.append(to_be_added)
-                x+=1
-            result["users"]=t_opics
-        else:
-            result["users"]=[]
-
-        all_topic=Topic.query.all()
+    result={} #would hold the result for all data that would be sent back to the client
+    arg=request.args.get("name")
+    if arg:
+        user_topic=User.query.filter_by(email=arg).first().topics
         t_opics=[]
-        for topic in all_topic:
-            Dict={
-               "title":topic.title,
-               "choices":[[choice.name,choice.count] for choice in topic.choices],
-               "created_by":topic.users.first_name,
-               "date":topic.date_created,
-               "count":topic.count
+        incremental=1
+        for t_ in user_topic:
+            arr=[t_.title,t_.count]
+            to_be_added={
+                "topic":arr
             }
-            t_opics.append(Dict)
-        result["topics"]=t_opics
-        result["response"]="ok"
-        return jsonify(result)
-    except Exception as e:
-       return onError(e)
+            t_opics.append(to_be_added)
+            incremental=incremental+1
+        result["users"]=t_opics
+    else:
+        result["users"]=[]
 
-
+    category=int(request.args.get("category"))
+    all_topic=Topic.query.all()
+    all_topic.reverse()
+    t_opics=[]
+    for topic in all_topic[category*per_query-per_query:category*per_query]:
+        Dict={
+            "title":topic.title,
+            "choices":[[choice.name,choice.count] for choice in topic.choices],
+            "created_by":topic.users.first_name,
+            "date":topic.date_created,
+            "count":topic.count
+        }
+        t_opics.append(Dict)
+    result["topics"]=t_opics
+    result["response"]="ok"
+    return jsonify(result)
 @vote.route("/signup",methods=["POST","GET"])
 def signup():
     if request.method=="GET":
@@ -108,7 +102,7 @@ def signup():
                return jsonify(json_message("error","invalid file type"))
             secure_name=secure_filename(file.filename)
             file.save(os.path.join(vote.config["UPLOAD_FOLDER"],secure_name))
-            user=User(first_name=first_name,last_name=last_name,email=email,password=generate_password_hash(password),image=secure_name)
+            user=User(first_name=first_name,last_name=last_name,email=email,password=generate_password_hash(password),image="image")
             Dict={
                 "response":"ok",
                 "first_name":first_name,
@@ -179,7 +173,7 @@ def create_poll():
             email=request.args.get("email")
             name=request.args.get("name")
             topic=request.args.get("topic")
-            imagename=secure_filename(request.args.get("image"))
+            imagename=request.args.get("image")
             cache.new_entry(email,name,topic,0,imagename)
             return jsonify(json_message("ok","new pending option added"))
         save=None
@@ -236,9 +230,9 @@ def cast_vote():
             for choice_e in the_topic.choices:
                 if choice_e.name==c_hoice:
                     choice_e.count+=1
-                    the_topic.count+=1
                     db.session.commit()
                     ip.new_entry(t_opic,Id)
+                    the_topic.count+=1
                     return jsonify(json_message("ok","you just vote"))
         else:
             return jsonify(json_message("ok","you voted before"))

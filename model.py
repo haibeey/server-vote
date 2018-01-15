@@ -19,7 +19,7 @@ class User(db.Model):
 
 
     def __repr__(self):
-        return str((self.first_name,self.last_name,self.email,self.password))
+        return str((self.first_name,self.last_name,self.email,self.password,self.image,self.date_created))
 
 
 class choice(db.Model):
@@ -66,6 +66,6 @@ def string_matcher(string1,string2):
 #c1=choice(name="vscode",Topic=t)
 #c2=choice(name="atom",Topic=t)
 
-#print(user.topics)
+#print(user.topics,user)
 
 #db.create_all()
