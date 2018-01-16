@@ -208,8 +208,9 @@ def cast_vote():
     person=request.args.get("person")
     load=request.args.get("load")
     vote=request.args.get("vote")
+    id=request.args.get("id")
     if load:
-        the_topic=Topic.query.filter_by(title=t_opic).first()#list of available topics
+        the_topic=Topic.query.filter_by(id=id).first()#list of available topics
         if not the_topic:
             return jsonify(json_message("error","cant find this topic"))
         response={}
