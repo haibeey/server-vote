@@ -57,7 +57,7 @@ def home():
         t_opics=[]
         incremental=1
         for t_ in user_topic:
-            arr=[t_.title,t_.count]
+            arr=[t_.id,t_.title,t_.count]
             to_be_added={
                 "topic":arr
             }
@@ -73,6 +73,7 @@ def home():
     t_opics=[]
     for topic in all_topic[category*per_query-per_query:category*per_query]:
         Dict={
+            "id":topic.id,
             "title":topic.title,
             "choices":[[choice.name,choice.count] for choice in topic.choices],
             "created_by":topic.users.first_name,
